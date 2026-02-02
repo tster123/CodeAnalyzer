@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CodeAnalyzerCli/CodeAnalyzerCli.csproj" />
+  <Project Path="CodeLib/CodeLib.csproj" />
+</Solution>
