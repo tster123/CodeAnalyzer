@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeLib;
@@ -30,6 +31,8 @@ public class CSharpMetricsWalker
 
     public void Walk(SyntaxNode node)
     {
+        // instead use this? 
+        // https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.csharp.csharpsyntaxvisitor-1.visit?view=roslyn-dotnet-4.13.0
         if (node is MethodDeclarationSyntax syntax)
         {
             Walk(syntax);
