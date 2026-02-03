@@ -2,7 +2,7 @@
   "profiles": {
     "CodeAnalyzerCli": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\Repos\\KewlStuff\\BlueNoise\\QuickTest\\Example"
+      "commandLineArgs": "C:\\repos\\QuickTest\\QuickTest"
     }
   }
 }
