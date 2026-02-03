@@ -157,15 +157,17 @@ public class CSharpWalker
         //    spans where the comment is.
         foreach (SyntaxTrivia t in triviaList)
         {
+            SyntaxNode? trivia = t.GetStructure();
+            if (trivia != null)
+            {
+                Print(trivia, indent + "  ", lineNums);
+            }
             if (commentKinds.Contains(t.Kind()))
             {
                 string i = indent + GetParentNonTrivia(t.GetStructure()) + ":";
                 PrintTrivia(t, i, lineNums);
                 continue;
             }
-            SyntaxNode? trivia = t.GetStructure();
-            if (trivia != null)
-                Print(trivia, indent + "  ", lineNums);
         }
     }
 
@@ -180,7 +182,7 @@ public class CSharpWalker
         
         if (node is DocumentationCommentTriviaSyntax)
         {
-            Console.WriteLine("XML" + node.Parent.GetType().Name + "-" + nodePrint);
+            Console.WriteLine("XML" + node?.Parent?.GetType().Name + "-" + nodePrint);
             return; // don't descend into XML comments
         }
 
