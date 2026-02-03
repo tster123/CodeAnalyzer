@@ -1,8 +1,9 @@
-﻿using System.Diagnostics;
-using System.Reflection;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace CodeLib;
 
@@ -23,15 +24,15 @@ public class Method
 
 public class CSharpMetrics
 {
-    private readonly Stack<Class> _classStack = new();
-    private Class CurrentClass => _classStack.Peek();
+    private readonly Stack<Class> classStack = new();
+    private Class CurrentClass => classStack.Peek();
 
-    private readonly Stack<Method> _methodStack = new();
-    private Method CurrentMethod => _methodStack.Peek();
+    private readonly Stack<Method> methodStack = new();
+    private Method CurrentMethod => methodStack.Peek();
 
     public List<Class> Classes = new();
 
-    private Dictionary<Type, MethodInfo> _visitors = new();
+    private readonly Dictionary<Type, MethodInfo> visitors = new();
 
     public CSharpMetrics()
     {
@@ -41,15 +42,15 @@ public class CSharpMetrics
             {
                 Debug.Assert(m.GetParameters().Length == 1);
                 Type paramType = m.GetParameters()[0].ParameterType;
-                Debug.Assert(!_visitors.ContainsKey(paramType));
-                _visitors[paramType] = m;
+                Debug.Assert(!visitors.ContainsKey(paramType));
+                visitors[paramType] = m;
             }
         }
     }
 
     public void Walk(SyntaxNode node)
     {
-        if (_visitors.TryGetValue(node.GetType(), out MethodInfo visitor))
+        if (visitors.TryGetValue(node.GetType(), out MethodInfo visitor))
         {
             visitor.Invoke(this, [node]);
         }
@@ -63,11 +64,11 @@ public class CSharpMetrics
     {
         Class m = new();
         m.Name = node.Identifier.ValueText;
-        _classStack.Push(m);
+        classStack.Push(m);
 
         WalkChildren(node);
         
-        Class m2 = _classStack.Pop();
+        Class m2 = classStack.Pop();
         Debug.Assert(m == m2);
         Classes.Add(m);
     }
@@ -76,11 +77,11 @@ public class CSharpMetrics
     {
         Method m = new();
         m.Name = node.Identifier.ValueText;
-        _methodStack.Push(m);
+        methodStack.Push(m);
         
         WalkChildren(node);
         
-        Method m2 = _methodStack.Pop();
+        Method m2 = methodStack.Pop();
         Debug.Assert(m == m2);
         CurrentClass.Methods.Add(m);
     }
@@ -129,7 +130,44 @@ public class CSharpWalker
         Console.WriteLine(w.Classes[0].ToString());
     }
 
-    
+    private static readonly HashSet<SyntaxKind> commentKinds =
+    [
+        SyntaxKind.SingleLineCommentTrivia,
+        SyntaxKind.MultiLineCommentTrivia,
+        SyntaxKind.DocumentationCommentExteriorTrivia,
+        SyntaxKind.SingleLineDocumentationCommentTrivia,
+        SyntaxKind.MultiLineDocumentationCommentTrivia
+    ];
+
+    private SyntaxNode? GetParentNonTrivia(SyntaxNode? n)
+    {
+        while (n != null && n.GetType().Name.Contains("Trivia"))
+        {
+            n = n.Parent;
+        }
+
+        return n;
+    }
+
+    public void PrintTrivia(IEnumerable<SyntaxTrivia> triviaList, string indent, uint[] lineNums)
+    {
+        // trivia strategy is going to be:
+        // 1) XML docs are attached to their parent method/class
+        // 2) all other comments are loaded from top level doc and included in whatever method/class first closes that
+        //    spans where the comment is.
+        foreach (SyntaxTrivia t in triviaList)
+        {
+            if (commentKinds.Contains(t.Kind()))
+            {
+                string i = indent + GetParentNonTrivia(t.GetStructure()) + ":";
+                PrintTrivia(t, i, lineNums);
+                continue;
+            }
+            SyntaxNode? trivia = t.GetStructure();
+            if (trivia != null)
+                Print(trivia, indent + "  ", lineNums);
+        }
+    }
 
     public void Print(SyntaxNode node, string indent, uint[] lineNums)
     {
@@ -142,44 +180,18 @@ public class CSharpWalker
         
         if (node is DocumentationCommentTriviaSyntax)
         {
-            Console.WriteLine(nodePrint);
+            Console.WriteLine("XML" + node.Parent.GetType().Name + "-" + nodePrint);
             return; // don't descend into XML comments
         }
 
-        SyntaxTriviaList list = node.GetLeadingTrivia();
-        foreach (SyntaxTrivia t in list)
-        {
-            if (t.Kind() == SyntaxKind.MultiLineCommentTrivia || 
-                t.Kind() == SyntaxKind.SingleLineCommentTrivia ||
-                t.Kind() == SyntaxKind.XmlComment)
-            {
-                PrintTrivia(t, indent + ":LEAD:", lineNums);
-                continue;
-            }
-            SyntaxNode? trivia = t.GetStructure();
-            if (trivia != null)
-                Print(trivia, indent + "  ", lineNums);
-        }
+        PrintTrivia(node.GetLeadingTrivia(), indent + ":LEAD:", lineNums);
         Console.WriteLine(nodePrint);
-        SyntaxTriviaList list2 = node.GetTrailingTrivia();
-        foreach (SyntaxTrivia t in list2)
-        {
-            if (t.Kind() == SyntaxKind.MultiLineCommentTrivia ||
-                t.Kind() == SyntaxKind.SingleLineCommentTrivia ||
-                t.Kind() == SyntaxKind.XmlComment)
-            {
-                PrintTrivia(t, indent + ":TRAIL:", lineNums);
-                continue;
-            }
-            SyntaxNode? trivia = t.GetStructure();
-            if (trivia != null)
-                Print(trivia, indent + "  ", lineNums);
-        }
         foreach (var child in node.ChildNodes())
         {
             Print(child, indent + "  ", lineNums);
         }
-        
+        PrintTrivia(node.DescendantTrivia(), indent + ":DESCEND:", lineNums);
+        PrintTrivia(node.GetTrailingTrivia(), indent + ":TRAIL:", lineNums);
     }
 
     private void PrintTrivia(SyntaxTrivia syntaxTrivia, string indent, uint[] lineNums)
