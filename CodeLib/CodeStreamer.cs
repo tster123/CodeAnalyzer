@@ -33,7 +33,7 @@ public class CodeStreamer
         Console.WriteLine(":::::::::::::::::::::::::::::::");
         Console.WriteLine("start: " + f.FullName);
         Console.WriteLine(":::::::::::::::::::::::::::::::");
-        w.Walk(tree.GetRoot());
+        w.Walk(tree);
         Console.WriteLine(":::::::::::::::::::::::::::::::");
         Console.WriteLine("end: " + f.FullName);
         Console.WriteLine(":::::::::::::::::::::::::::::::");
