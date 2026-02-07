@@ -29,13 +29,25 @@ public class CodeStreamer
         using FileStream s = f.OpenRead();
         SourceText source = SourceText.From(s);
         SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: f.FullName);
-        CSharpWalker w = new();
+
+        CSharpMetrics w = new(tree);
+        w.WalkTree();
+        foreach (Class c in w.Classes)
+        {
+            Console.WriteLine(c);
+            foreach (Method m in c.Methods)
+            {
+                Console.WriteLine("  " + m);
+            }
+        }
+        
+        /*CSharpWalker w = new();
         Console.WriteLine(":::::::::::::::::::::::::::::::");
         Console.WriteLine("start: " + f.FullName);
         Console.WriteLine(":::::::::::::::::::::::::::::::");
         w.Walk(tree);
         Console.WriteLine(":::::::::::::::::::::::::::::::");
         Console.WriteLine("end: " + f.FullName);
-        Console.WriteLine(":::::::::::::::::::::::::::::::");
+        Console.WriteLine(":::::::::::::::::::::::::::::::");*/
     }
 }
