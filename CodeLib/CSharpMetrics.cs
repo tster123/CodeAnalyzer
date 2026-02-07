@@ -7,10 +7,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeLib;
 
-public class Namespace
+public class Namespace(string name)
 {
-    public string Name { get; set; }
+    public string Name { get; } = name;
     public List<Class> Classes { get; } = new();
+
+    public override string ToString() => $"namespace {Name}";
 }
 
 public enum ClassType
@@ -18,18 +20,12 @@ public enum ClassType
     Class, Interface, Enum, Struct, Record
 }
 
-public class Class
+public class Class(ClassType type, string name)
 {
-    public string Name { get; }
-    public ClassType Type { get; }
+    public string Name { get; } = name;
+    public ClassType Type { get; } = type;
     public List<Method> Methods { get; } = new();
     public uint CommentLines { get; set; }
-
-    public Class(ClassType type, string name)
-    {
-        Type = type;
-        Name = name;
-    }
 
     public override string ToString()
     {
@@ -37,13 +33,16 @@ public class Class
     }
 }
 
-public class Method
+public class Method(string name)
 {
-    public string Name { get; set; }
-    public uint CyclomaticComplexity { get; set; }
+    public string Name { get; } = name;
+    public uint CyclomaticComplexity { get; set; } = 2;
     public uint CommentLines { get; set; }
     public uint CodeTokens { get; set; }
     public uint Lambdas { get; set; }
+    public uint Parameters { get; set; }
+    //TODO inspect parameters.   complexity means 1 point for every type present in the declaration
+    public uint ReturnAndParameterComplexity { get; set; }
 
     public override string ToString()
     {
@@ -60,7 +59,12 @@ public class CSharpMetrics
     private readonly Stack<Method> methodStack = new();
     private Method? CurrentMethod => methodStack.TryPeek(out var v) ? v : null;
 
-    public List<Class> Classes = new();
+    private readonly Namespace blankNamespace = new("");
+    private Dictionary<string, Namespace> namespaceHash = new();
+    private readonly LinkedList<Namespace> namespaceStack = new();
+    private Namespace CurrentNamespace => namespaceStack.Last();
+
+    public IEnumerable<Namespace> Namespaces => namespaceHash.Values.ToList();
 
     private static readonly Dictionary<Type, MethodInfo> Visitors = new();
 
@@ -84,6 +88,9 @@ public class CSharpMetrics
 
     public CSharpMetrics(SyntaxTree tree)
     {
+        namespaceHash[""] = blankNamespace;
+        namespaceStack.AddLast(blankNamespace);
+
         Tree          = tree;
         commentLookup = BuildComments();
 
@@ -158,6 +165,11 @@ public class CSharpMetrics
             tokenCount++;
         }
 
+        if (node is PostfixUnaryExpressionSyntax or PrefixUnaryExpressionSyntax)
+        {
+            tokenCount++;
+        }
+
         if (node is BinaryExpressionSyntax b)
         {
             tokenCount++;
@@ -221,6 +233,48 @@ public class CSharpMetrics
         WalkChildren(node);
     }
 
+    #region Namespace
+    private void VisitNamespaceDeclaration(BaseNamespaceDeclarationSyntax node, ClassType @interface)
+    {
+        string name = node.Name.ToString();
+        var llNode = namespaceStack.Last;
+        while (llNode != null)
+        {
+            if (!string.IsNullOrEmpty(llNode.Value.Name))
+            {
+                name = llNode.Value.Name + "." + name;
+            }
+            llNode = llNode.Previous;
+        }
+
+        Namespace n;
+        if (namespaceHash.TryGetValue(name, out Namespace? existing))
+        {
+            n = existing;
+        }
+        else
+        {
+            n = new Namespace(name);
+            namespaceHash[n.Name] = n;
+        }
+        namespaceStack.AddLast(n);
+        WalkChildren(node);
+    }
+
+    [UsedImplicitly]
+    public void Visit(NamespaceDeclarationSyntax node)
+    {
+        VisitNamespaceDeclaration(node, ClassType.Interface);
+        namespaceStack.RemoveLast();
+    }
+
+    [UsedImplicitly]
+    public void Visit(FileScopedNamespaceDeclarationSyntax node)
+    {
+        VisitNamespaceDeclaration(node, ClassType.Interface);
+    }
+    #endregion
+
     private void VisitTypeDeclaration(BaseTypeDeclarationSyntax node, ClassType type)
     {
         Class m = new(type, node.Identifier.ValueText);
@@ -230,7 +284,7 @@ public class CSharpMetrics
 
         Class m2 = classStack.Pop();
         Debug.Assert(m == m2);
-        Classes.Add(m);
+        CurrentNamespace.Classes.Add(m);
     }
 
     [UsedImplicitly]
@@ -266,9 +320,7 @@ public class CSharpMetrics
     [UsedImplicitly]
     public void Visit(MethodDeclarationSyntax node)
     {
-        Method m = new();
-        m.Name                 = node.Identifier.ValueText;
-        m.CyclomaticComplexity = 2;
+        Method m = new(node.Identifier.ValueText);
         methodStack.Push(m);
         
         WalkChildren(node);

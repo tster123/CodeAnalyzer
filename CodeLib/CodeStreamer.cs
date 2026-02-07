@@ -41,16 +41,20 @@ public class CodeStreamer
             Errors++;
             return;
         }
-        
-        foreach (Class c in w.Classes)
+
+        foreach (Namespace n in w.Namespaces)
         {
-            Console.WriteLine(c);
-            foreach (Method m in c.Methods)
+            Console.WriteLine(n);
+            foreach (Class c in n.Classes)
             {
-                Console.WriteLine("  " + m);
+                Console.WriteLine(c);
+                foreach (Method m in c.Methods)
+                {
+                    Console.WriteLine("  " + m);
+                }
             }
         }
-        
+
         /*CSharpWalker w = new();
         Console.WriteLine(":::::::::::::::::::::::::::::::");
         Console.WriteLine("start: " + f.FullName);
