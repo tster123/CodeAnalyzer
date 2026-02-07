@@ -6,7 +6,7 @@ namespace CodeLib;
 
 public class CodeStreamer
 {
-
+    public uint Errors = 0;
     public void ProcessFolder(DirectoryInfo dir)
     {
         foreach (FileInfo f in dir.GetFiles())
@@ -26,12 +26,22 @@ public class CodeStreamer
 
     public void ProcessCSharp(FileInfo f)
     {
-        using FileStream s = f.OpenRead();
-        SourceText source = SourceText.From(s);
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: f.FullName);
-
-        CSharpMetrics w = new(tree);
-        w.WalkTree();
+        CSharpMetrics w;
+        try
+        {
+            using FileStream s = f.OpenRead();
+            SourceText source = SourceText.From(s);
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: f.FullName);
+            w = new CSharpMetrics(tree);
+            w.WalkTree();
+        }
+        catch (Exception e)
+        {
+            Console.Error.WriteLine("Error in file: " + f.FullName + "\n" + e);
+            Errors++;
+            return;
+        }
+        
         foreach (Class c in w.Classes)
         {
             Console.WriteLine(c);

@@ -9,6 +9,7 @@ namespace CodeAnalyzerCli
         {
             CodeStreamer s = new();
             s.ProcessFolder(new DirectoryInfo(args[0]));
+            Console.WriteLine("Errors: " + s.Errors);
         }
     }
 }

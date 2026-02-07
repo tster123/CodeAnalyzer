@@ -15,7 +15,7 @@ public class Namespace
 
 public enum ClassType
 {
-    Class, Enum, Struct, Record
+    Class, Interface, Enum, Struct, Record
 }
 
 public class Class
@@ -62,7 +62,7 @@ public class CSharpMetrics
 
     public List<Class> Classes = new();
 
-    private static readonly Dictionary<Type, MethodInfo> visitors = new();
+    private static readonly Dictionary<Type, MethodInfo> Visitors = new();
 
     static CSharpMetrics()
     {
@@ -72,8 +72,8 @@ public class CSharpMetrics
             {
                 Debug.Assert(m.GetParameters().Length == 1);
                 Type paramType = m.GetParameters()[0].ParameterType;
-                Debug.Assert(!visitors.ContainsKey(paramType));
-                visitors[paramType] = m;
+                Debug.Assert(!Visitors.ContainsKey(paramType));
+                Visitors[paramType] = m;
             }
         }
     }
@@ -131,7 +131,7 @@ public class CSharpMetrics
 
     private void Walk(SyntaxNode node)
     {
-        if (visitors.TryGetValue(node.GetType(), out MethodInfo visitor))
+        if (Visitors.TryGetValue(node.GetType(), out MethodInfo? visitor))
         {
             visitor.Invoke(this, [node]);
         }
@@ -231,6 +231,12 @@ public class CSharpMetrics
         Class m2 = classStack.Pop();
         Debug.Assert(m == m2);
         Classes.Add(m);
+    }
+
+    [UsedImplicitly]
+    public void Visit(InterfaceDeclarationSyntax node)
+    {
+        VisitTypeDeclaration(node, ClassType.Interface);
     }
 
     [UsedImplicitly]
