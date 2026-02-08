@@ -234,7 +234,7 @@ public class CSharpMetrics
     }
 
     #region Namespace
-    private void VisitNamespaceDeclaration(BaseNamespaceDeclarationSyntax node, ClassType @interface)
+    private void VisitNamespaceDeclaration(BaseNamespaceDeclarationSyntax node)
     {
         string name = node.Name.ToString();
         var llNode = namespaceStack.Last;
@@ -264,14 +264,14 @@ public class CSharpMetrics
     [UsedImplicitly]
     public void Visit(NamespaceDeclarationSyntax node)
     {
-        VisitNamespaceDeclaration(node, ClassType.Interface);
+        VisitNamespaceDeclaration(node);
         namespaceStack.RemoveLast();
     }
 
     [UsedImplicitly]
     public void Visit(FileScopedNamespaceDeclarationSyntax node)
     {
-        VisitNamespaceDeclaration(node, ClassType.Interface);
+        VisitNamespaceDeclaration(node);
     }
     #endregion
 

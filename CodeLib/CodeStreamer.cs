@@ -6,7 +6,7 @@ namespace CodeLib;
 
 public class CodeStreamer
 {
-    public uint Errors = 0;
+    public uint Errors;
     public void ProcessFolder(DirectoryInfo dir)
     {
         foreach (FileInfo f in dir.GetFiles())
