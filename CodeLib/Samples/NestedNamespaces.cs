@@ -18,7 +18,9 @@ namespace CodeLib.Samples
         public enum Mork
         {
             Hello,
-            World
+            World,
+            Mork,
+            Sport,
         }
     }
 
