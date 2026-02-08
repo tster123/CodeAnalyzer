@@ -17,7 +17,8 @@ namespace CodeLib.Samples
     {
         public class Mork
         {
-            public int Foo() => 1 + 2;
+            private bool Fork = true;
+            public int Foo() => Fork ? 1 + 2 : "hello world".Length;
         }
     }
 
