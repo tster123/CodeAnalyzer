@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using CodeLib.Metrics;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
@@ -7,6 +8,15 @@ namespace CodeLib;
 public class CodeStreamer
 {
     public uint Errors;
+    private bool Metrics, PrintAst;
+
+    public CodeStreamer(bool metrics, bool printAst)
+    {
+        Metrics = metrics;
+        PrintAst = printAst;
+    }
+
+    public uint Errors = 0;
     public void ProcessFolder(DirectoryInfo dir)
     {
         foreach (FileInfo f in dir.GetFiles())
@@ -26,42 +36,48 @@ public class CodeStreamer
 
     public void ProcessCSharp(FileInfo f)
     {
-        CSharpMetrics w;
-        try
+        using FileStream s = f.OpenRead();
+        SourceText source = SourceText.From(s);
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: f.FullName);
+        if (Metrics)
         {
-            using FileStream s = f.OpenRead();
-            SourceText source = SourceText.From(s);
-            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: f.FullName);
-            w = new CSharpMetrics(tree);
-            w.WalkTree();
-        }
-        catch (Exception e)
-        {
-            Console.Error.WriteLine("Error in file: " + f.FullName + "\n" + e);
-            Errors++;
-            return;
-        }
-
-        foreach (Namespace n in w.Namespaces)
-        {
-            Console.WriteLine(n);
-            foreach (Class c in n.Classes)
+            CSharpMetricsWalker w;
+            try
             {
-                Console.WriteLine(c);
-                foreach (Method m in c.Methods)
+                w = new CSharpMetricsWalker(tree);
+                w.WalkTree();
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Error in file: " + f.FullName + "\n" + e);
+                Errors++;
+                return;
+            }
+
+            foreach (Namespace n in w.Namespaces)
+            {
+                Console.WriteLine(n);
+                foreach (Class c in n.Classes)
                 {
-                    Console.WriteLine("  " + m);
+                    Console.WriteLine(c);
+                    foreach (Method m in c.Methods)
+                    {
+                        Console.WriteLine("  " + m);
+                    }
                 }
             }
         }
 
-        /*CSharpWalker w = new();
-        Console.WriteLine(":::::::::::::::::::::::::::::::");
-        Console.WriteLine("start: " + f.FullName);
-        Console.WriteLine(":::::::::::::::::::::::::::::::");
-        w.Walk(tree);
-        Console.WriteLine(":::::::::::::::::::::::::::::::");
-        Console.WriteLine("end: " + f.FullName);
-        Console.WriteLine(":::::::::::::::::::::::::::::::");*/
+        if (PrintAst)
+        {
+            CSharpWalker w = new();
+            Console.WriteLine(":::::::::::::::::::::::::::::::");
+            Console.WriteLine("start: " + f.FullName);
+            Console.WriteLine(":::::::::::::::::::::::::::::::");
+            w.Walk(tree);
+            Console.WriteLine(":::::::::::::::::::::::::::::::");
+            Console.WriteLine("end: " + f.FullName);
+            Console.WriteLine(":::::::::::::::::::::::::::::::");
+        }
     }
 }

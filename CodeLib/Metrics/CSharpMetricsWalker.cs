@@ -5,53 +5,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CodeLib;
+namespace CodeLib.Metrics;
 
-public class Namespace(string name)
-{
-    public string Name { get; } = name;
-    public List<Class> Classes { get; } = new();
-
-    public override string ToString() => $"namespace {Name}";
-}
-
-public enum ClassType
-{
-    Class, Interface, Enum, Struct, Record
-}
-
-public class Class(ClassType type, string name)
-{
-    public string Name { get; } = name;
-    public ClassType Type { get; } = type;
-    public List<Method> Methods { get; } = new();
-    public uint CommentLines { get; set; }
-
-    public override string ToString()
-    {
-        return $"{Type}: {Name}, {nameof(CommentLines)}: {CommentLines}";
-    }
-}
-
-public class Method(string name)
-{
-    public string Name { get; } = name;
-    public uint CyclomaticComplexity { get; set; } = 2;
-    public uint CommentLines { get; set; }
-    public uint CodeTokens { get; set; }
-    public uint Lambdas { get; set; }
-    public uint Parameters { get; set; }
-    //TODO inspect parameters.   complexity means 1 point for every type present in the declaration
-    public uint ReturnAndParameterComplexity { get; set; }
-
-    public override string ToString()
-    {
-        return
-            $"{nameof(Name)}: {Name}, {nameof(CyclomaticComplexity)}: {CyclomaticComplexity}, {nameof(CommentLines)}: {CommentLines}, {nameof(CodeTokens)}: {CodeTokens}, {nameof(Lambdas)}: {Lambdas}";
-    }
-}
-
-public class CSharpMetrics
+public class CSharpMetricsWalker
 {
     private readonly Stack<Class> classStack = new();
     private Class? CurrentClass => classStack.TryPeek(out var v) ? v : null;
@@ -68,9 +24,9 @@ public class CSharpMetrics
 
     private static readonly Dictionary<Type, MethodInfo> Visitors = new();
 
-    static CSharpMetrics()
+    static CSharpMetricsWalker()
     {
-        foreach (MethodInfo m in typeof(CSharpMetrics).GetMethods(BindingFlags.Instance | BindingFlags.Public))
+        foreach (MethodInfo m in typeof(CSharpMetricsWalker).GetMethods(BindingFlags.Instance | BindingFlags.Public))
         {
             if (m.Name == "Visit")
             {
@@ -86,7 +42,7 @@ public class CSharpMetrics
     private readonly Dictionary<SyntaxNode, List<SyntaxTrivia>> commentLookup;
     private uint[] lineNums;
 
-    public CSharpMetrics(SyntaxTree tree)
+    public CSharpMetricsWalker(SyntaxTree tree)
     {
         namespaceHash[""] = blankNamespace;
         namespaceStack.AddLast(blankNamespace);
@@ -165,6 +121,11 @@ public class CSharpMetrics
             tokenCount++;
         }
 
+        if (node is GenericNameSyntax g)
+        {
+            tokenCount++; // List<bool> the "List" part isn't a child
+        }
+
         if (node is PostfixUnaryExpressionSyntax or PrefixUnaryExpressionSyntax)
         {
             tokenCount++;
@@ -219,7 +180,14 @@ public class CSharpMetrics
             Class? c = CurrentClass;
             if (m != null)
             {
-                m.CodeTokens           += tokenCount;
+                if (insideMethodContract)
+                {
+                    m.ReturnAndParameterComplexity += tokenCount;
+                }
+                else
+                {
+                    m.CodeTokens += tokenCount;
+                }
                 m.CommentLines         += commentLines;
                 m.CyclomaticComplexity += branchCount;
                 m.Lambdas              += lambdaCount;
@@ -231,6 +199,17 @@ public class CSharpMetrics
         }
 
         WalkChildren(node);
+    }
+
+    public void Visit(ParameterSyntax node)
+    {
+        var m = CurrentMethod;
+        if (m != null) m.Parameters++;
+        else
+        {
+            //TODO: dewbug    
+        }
+        DefaultVisit(node);
     }
 
     #region Namespace
@@ -274,7 +253,7 @@ public class CSharpMetrics
         VisitNamespaceDeclaration(node);
     }
     #endregion
-
+    #region Type Containers (class, struct, record, enum)
     private void VisitTypeDeclaration(BaseTypeDeclarationSyntax node, ClassType type)
     {
         Class m = new(type, node.Identifier.ValueText);
@@ -316,6 +295,7 @@ public class CSharpMetrics
     {
         VisitTypeDeclaration(node, ClassType.Enum);
     }
+    #endregion
 
     [UsedImplicitly]
     public void Visit(MethodDeclarationSyntax node)
@@ -328,5 +308,16 @@ public class CSharpMetrics
         Method m2 = methodStack.Pop();
         Debug.Assert(m == m2);
         CurrentClass!.Methods.Add(m);
+    }
+
+    private bool insideMethodContract = false;
+    [UsedImplicitly]
+    public void Visit(ParameterListSyntax node)
+    {
+        insideMethodContract = true;
+        WalkChildren(node);
+        insideMethodContract = false;
+
+        //TODO handle return complexity
     }
 }
