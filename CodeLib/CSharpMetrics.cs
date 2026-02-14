@@ -327,6 +327,6 @@ public class CSharpMetrics
         
         Method m2 = methodStack.Pop();
         Debug.Assert(m == m2);
-        CurrentClass.Methods.Add(m);
+        CurrentClass!.Methods.Add(m);
     }
 }
