@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using Wrapped.System.IO;
 
 namespace CodeLib;
 
@@ -16,9 +17,9 @@ public class CodeStreamer
     }
 
     public uint Errors = 0;
-    public void ProcessFolder(DirectoryInfo dir)
+    public void ProcessFolder(IDirectoryInfoWrap dir)
     {
-        foreach (FileInfo f in dir.GetFiles())
+        foreach (IFileInfoWrap f in dir.GetFiles())
         {
             if (f.Extension == ".cs")
             {
@@ -33,10 +34,10 @@ public class CodeStreamer
         }
     }
 
-    public void ProcessCSharp(FileInfo f)
+    public void ProcessCSharp(IFileInfoWrap f)
     {
-        using FileStream s = f.OpenRead();
-        SourceText source = SourceText.From(s);
+        using IFileStreamWrap s = f.OpenRead();
+        SourceText source = SourceText.From(s.WrappedStream);
         SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: f.FullName);
         if (Metrics)
         {

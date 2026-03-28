@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="CodeAnalyzerCli/CodeAnalyzerCli.csproj" />
   <Project Path="CodeLib/CodeLib.csproj" />
+  <Project Path="CodeLibTest/CodeLibTest.csproj" Id="f0acf354-bc93-4c0b-b2bd-a973ed9769fe" />
 </Solution>
