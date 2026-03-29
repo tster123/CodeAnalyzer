@@ -7,7 +7,6 @@ namespace CodeLib;
 
 public class CodeStreamer
 {
-    public uint Errors;
     private bool Metrics, PrintAst;
 
     public CodeStreamer(bool metrics, bool printAst)

@@ -1,5 +1,4 @@
 ﻿using CodeLib;
-using SystemWrapper.IO;
 
 namespace CodeAnalyzerCli
 {
