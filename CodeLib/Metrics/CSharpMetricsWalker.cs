@@ -213,7 +213,7 @@ public class CSharpMetricsWalker
     }
 
     #region Namespace
-    private void VisitNamespaceDeclaration(BaseNamespaceDeclarationSyntax node, ClassType @interface)
+    private void VisitNamespaceDeclaration(BaseNamespaceDeclarationSyntax node)
     {
         string name = node.Name.ToString();
         var llNode = namespaceStack.Last;
@@ -243,14 +243,14 @@ public class CSharpMetricsWalker
     [UsedImplicitly]
     public void Visit(NamespaceDeclarationSyntax node)
     {
-        VisitNamespaceDeclaration(node, ClassType.Interface);
+        VisitNamespaceDeclaration(node);
         namespaceStack.RemoveLast();
     }
 
     [UsedImplicitly]
     public void Visit(FileScopedNamespaceDeclarationSyntax node)
     {
-        VisitNamespaceDeclaration(node, ClassType.Interface);
+        VisitNamespaceDeclaration(node);
     }
     #endregion
     #region Type Containers (class, struct, record, enum)
@@ -307,7 +307,7 @@ public class CSharpMetricsWalker
         
         Method m2 = methodStack.Pop();
         Debug.Assert(m == m2);
-        CurrentClass.Methods.Add(m);
+        CurrentClass!.Methods.Add(m);
     }
 
     private bool insideMethodContract = false;
