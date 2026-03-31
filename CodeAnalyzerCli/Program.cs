@@ -1,4 +1,5 @@
 ﻿using CodeLib;
+using Wrapped.System.IO;
 
 namespace CodeAnalyzerCli
 {
@@ -28,7 +29,7 @@ namespace CodeAnalyzerCli
             }
 
             CodeStreamer s = new(metrics, printAst);
-            s.ProcessFolder(new DirectoryInfo(args.Last()));
+            s.ProcessFolder(new DirectoryInfoWrap(args.Last()));
             Console.WriteLine("Errors: " + s.Errors);
         }
 
