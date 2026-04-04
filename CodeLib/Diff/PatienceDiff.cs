@@ -1,10 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-
-namespace CodeLib.Diff;
+﻿namespace CodeLib.Diff;
 
 public record struct Patch
 {
@@ -52,14 +46,14 @@ public class PatienceDiff
         throw new NotImplementedException();
     }
 
-    internal static SingleOccurenceClass[] GetSingles(List<ulong> list)
+    internal static PatienceMatch[] GetSingles(List<ulong> a, List<ulong> b)
     {
         int numMultiple = 0;
-        List<SingleOccurenceClass> occur = new(Math.Min(10, list.Count / 10));
+        List<SingleOccurenceClass> occur = new(Math.Min(10, a.Count / 10));
         Dictionary<ulong, SingleOccurenceClass> seen = new();
-        for (int i = 0; i < list.Count; i++)
+        for (int i = 0; i < a.Count; i++)
         {
-            ulong val = list[i];
+            ulong val = a[i];
             if (seen.TryGetValue(val, out SingleOccurenceClass? o))
             {
                 if (!o.MultipleSeen)
@@ -76,13 +70,31 @@ public class PatienceDiff
             }
         }
 
-        SingleOccurenceClass[] ret = new SingleOccurenceClass[occur.Count - numMultiple];
+        for (int i = 0; i < b.Count; i++)
+        {
+            ulong val = b[i];
+            if (seen.TryGetValue(val, out SingleOccurenceClass? o))
+            {
+                if (!o.MultipleSeen)
+                {
+                    if (o.LocationB == -2)
+                        o.LocationB = i; // first time in B.
+                    else
+                    {
+                        numMultiple++;
+                        o.LocationB = -1; // has already been in b, so mark it as -1
+                    }
+                }
+            }
+        }
+
+        PatienceMatch[] ret = new PatienceMatch[occur.Count - numMultiple];
         int j = 0;
         foreach (SingleOccurenceClass o in occur)
         {
-            if (!o.MultipleSeen)
+            if (!o.MultipleSeen && o.LocationB >= 0)
             {
-                ret[j] = o;
+                ret[j] = new PatienceMatch(o.LocationA, o.LocationB);
                 j++;
             }
         }
@@ -90,9 +102,9 @@ public class PatienceDiff
         return ret;
     }
 
-    private static readonly int _sizeOfSingleOccurence = Unsafe.SizeOf<SingleOccurence>();
+    //private static readonly int _sizeOfSingleOccurence = Unsafe.SizeOf<SingleOccurence>();
 
-    internal static SingleOccurence[] GetSinglesAlt(List<ulong> list)
+    /*internal static SingleOccurence[] GetSinglesAlt(List<ulong> list)
     {
         int numMultiple = 0;
         SingleOccurence[] occur = new SingleOccurence[Math.Min(10, list.Count / 10)];
@@ -144,13 +156,20 @@ public class PatienceDiff
 
         return ret;
     }
+    */
 }
 
-internal record struct SingleOccurence(int Location, ulong Value, bool MultipleSeen);
+//internal record struct SingleOccurence(int Location, ulong Value, bool MultipleSeen);
 
-internal record SingleOccurenceClass(int Location, ulong Value, bool MultipleSeen)
+internal record PatienceMatch(int LocA, int LocB)
 {
-    public bool MultipleSeen { get; set; } = MultipleSeen;
+    internal PatienceMatch Prev, Next;
+}
+
+internal record SingleOccurenceClass(int LocationA, ulong Value, bool MultipleSeen)
+{
+    public bool MultipleSeen = MultipleSeen;
+    public int LocationB = -2;
 }
 
 internal record struct PatienceSection
