@@ -54,7 +54,7 @@ public class QuadraticMeyersDiffTest
     public void Bigger()
     {
         tester.RunTest(15 + 2 + 1,
-            "12233234  1234671", // 15 long
+            "12233234  1234671",  // 15 long
             "122  234421235 71"); // 3 deletes, 2 adds, 1 modify
     }
 }
