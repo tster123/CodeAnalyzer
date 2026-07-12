@@ -7,7 +7,7 @@ namespace CodeLib.Diff;
 
 public interface IFileTokenizer
 {
-    
+    List<ulong> Tokenize(string filePath, IStreamWrap bytes);
 }
 
 public class TextFileByLines : IFileTokenizer
