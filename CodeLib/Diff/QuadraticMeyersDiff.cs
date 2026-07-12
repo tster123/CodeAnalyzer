@@ -1,8 +1,9 @@
-﻿using System.Diagnostics;
-using System.Security.Cryptography;
+﻿namespace CodeLib.Diff;
 
-namespace CodeLib.Diff;
 
+/// <summary>
+/// Simple implementation of myers algorithm that runs in O(m*n) and uses m*n space.
+/// </summary>
 public class QuadraticMeyersDiff : IDiffAlgorithm
 {
     public List<DiffPart> Diff(Span<uint> a, Span<uint> b)

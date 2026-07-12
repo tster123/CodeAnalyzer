@@ -1,4 +1,5 @@
-﻿using CodeLib.Diff;
+﻿using System.Runtime.InteropServices.Marshalling;
+using CodeLib.Diff;
 #pragma warning disable MSTEST0037
 
 [TestClass]
@@ -10,6 +11,7 @@ public class QuadraticMeyersDiffTest
     public void OnlyInsert()
     {
         tester.RunTest([], [1, 2, 3, 4, 5, 6]);
+        tester.RunTest(6, "", "123456");
     }
 
     [TestMethod]
@@ -47,13 +49,13 @@ public class QuadraticMeyersDiffTest
             [1, 2, 3, 4, 5, 6, 7],
             [1, 2, 6, 7, 3, 4, 5]);
     }
-
+    
     [TestMethod]
     public void Bigger()
     {
-        tester.RunTest(22,
-            [1, 2, 2, 3, 3, 2, 3, 4, 1, 2, 3, 4, 6, 7, 1], // 15 long
-            [1, 2, 3, 2, 3, 3, 4, 1, 4, 6, 6, 1]); //7 edits
+        tester.RunTest(15 + 2 + 1,
+            "12233234  1234671", // 15 long
+            "122  234421235 71"); // 3 deletes, 2 adds, 1 modify
     }
 }
 
@@ -69,6 +71,13 @@ internal class GenericDiffTester
     internal void RunTest(uint[] a, uint[] b)
     {
         RunTest(-1, a, b);
+    }
+
+    internal void RunTest(int expectedPartCount, string a, string b)
+    {
+        RunTest(expectedPartCount,
+            a.Where(c => c != ' ').Select(c => (uint) c).ToArray(),
+            b.Where(c => c != ' ').Select(c => (uint) c).ToArray());
     }
 
     internal void RunTest(int expectedPartCount, uint[] a, uint[] b)
