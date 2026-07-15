@@ -1,8 +1,10 @@
 ﻿using CodeAnalyzerCli.Commands;
+using JetBrains.Annotations;
 using Spectre.Console.Cli;
 
 namespace CodeAnalyzerCli;
 
+[UsedImplicitly]
 public class Program
 {
     static int Main(string[] args)

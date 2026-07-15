@@ -6,7 +6,7 @@
 /// </summary>
 public class QuadraticMeyersDiff : IDiffAlgorithm
 {
-    public List<DiffPart> Diff(Span<uint> a, Span<uint> b)
+    public List<DiffPart> Diff(Span<ulong> a, Span<ulong> b)
     {
         uint[,] matrix = new uint[a.Length + 1, b.Length + 1];
         // fill first and last column with cost to reach which is just straight insert/delete

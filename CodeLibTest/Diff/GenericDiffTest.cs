@@ -68,7 +68,7 @@ internal class GenericDiffTester
         this.algo = algo;
     }
 
-    internal void RunTest(uint[] a, uint[] b)
+    internal void RunTest(ulong[] a, ulong[] b)
     {
         RunTest(-1, a, b);
     }
@@ -76,19 +76,19 @@ internal class GenericDiffTester
     internal void RunTest(int expectedPartCount, string a, string b)
     {
         RunTest(expectedPartCount,
-            a.Where(c => c != ' ').Select(c => (uint) c).ToArray(),
-            b.Where(c => c != ' ').Select(c => (uint) c).ToArray());
+            a.Where(c => c != ' ').Select(c => (ulong) c).ToArray(),
+            b.Where(c => c != ' ').Select(c => (ulong) c).ToArray());
     }
 
-    internal void RunTest(int expectedPartCount, uint[] a, uint[] b)
+    internal void RunTest(int expectedPartCount, ulong[] a, ulong[] b)
     {
         List<DiffPart> diff = algo.Diff(a, b);
         for (int i = diff.Count - 1; i >= 0; i--)
         {
             Console.WriteLine(diff[i]);
         }
-        uint[] bCheck = new uint[b.Length];
-        uint[] aCheck = new uint[a.Length];
+        ulong[] bCheck = new ulong[b.Length];
+        ulong[] aCheck = new ulong[a.Length];
         for (int i = 0; i < a.Length; i++)
         {
             aCheck[i] = a[i];

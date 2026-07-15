@@ -29,5 +29,5 @@ public struct DiffPart
 
 public interface IDiffAlgorithm
 {
-    public List<DiffPart> Diff(Span<uint> a, Span<uint> b);
+    public List<DiffPart> Diff(Span<ulong> a, Span<ulong> b);
 }
