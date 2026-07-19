@@ -1,5 +1,8 @@
 ﻿namespace CodeLib.Diff;
 
+/// <summary>
+/// A patch is a chunk of code that has been either added
+/// </summary>
 public record struct Patch
 {
     public uint APos;
@@ -7,10 +10,10 @@ public record struct Patch
     public uint Len;
     public PatchType Type;
 
-    private Patch(uint sourcePosition, uint targetPosition, uint length, PatchType type)
+    private Patch(uint aPosition, uint bPosition, uint length, PatchType type)
     {
-        APos = sourcePosition;
-        BPos = targetPosition;
+        APos = aPosition;
+        BPos = bPosition;
         Len = length;
         Type = type;
     }
@@ -230,7 +233,7 @@ public class PatienceDiff
 
 internal record PatienceMatch(int LocA, int LocB)
 {
-    internal PatienceMatch Prev, Next;
+    //internal PatienceMatch Prev, Next;
 }
 
 internal record SingleOccurenceClass(int LocationA, ulong Value, bool MultipleSeen)

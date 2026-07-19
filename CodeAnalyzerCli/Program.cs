@@ -1,41 +1,20 @@
-﻿using CodeLib;
-using Wrapped.System.IO;
+﻿using CodeAnalyzerCli.Commands;
+using JetBrains.Annotations;
+using Spectre.Console.Cli;
 
-namespace CodeAnalyzerCli
+namespace CodeAnalyzerCli;
+
+[UsedImplicitly]
+public class Program
 {
-    internal class Program
+    static int Main(string[] args)
     {
-        static void Main(string[] args)
+        var app = new CommandApp();
+        app.Configure(config =>
         {
-            bool metrics = false, printAst = false;
-            if (args.Length == 0)
-            {
-                Usage();
-                return;
-            }
-            for (int i = 0; i < args.Length - 1; i++)
-            {
-                if (args[i].ToLower() == "--metrics") metrics = true;
-                else if (args[i].ToLower() == "--ast") printAst = true;
-                else
-                {
-                    Usage();
-                    return;
-                }
-            }
-            if (args.Length == 1)
-            {
-                metrics = true;
-            }
-
-            CodeStreamer s = new(metrics, printAst);
-            s.ProcessFolder(new DirectoryInfoWrap(args.Last()));
-            Console.WriteLine("Errors: " + s.Errors);
-        }
-
-        private static void Usage()
-        {
-            Console.WriteLine("CodeAnalyzerCli.exe [--metrics] [--ast] <dir>");
-        }
+            config.AddCommand<DiffCommand>("diff");
+            config.AddCommand<MetricsCommand>("metrics");
+        });
+        return app.Run(args);
     }
 }
