@@ -26,6 +26,12 @@ public enum PatchType : sbyte
     Insert,
     NoChange
 }
+
+/// <summary>
+/// reference:
+///     https://blog.jcoglan.com/2017/09/19/the-patience-diff-algorithm/
+///     https://blog.jcoglan.com/2017/09/28/implementing-patience-diff/
+/// </summary>
 public class PatienceDiff
 {
     private List<ulong> a, b;
@@ -100,6 +106,67 @@ public class PatienceDiff
         }
 
         return ret;
+    }
+
+    internal static int[] LongestIncreasingLinesOfB(PatienceMatch[] matches)
+    {
+        if (matches.Length == 0) return [];
+        // logically they are stacks, but don't actually need anything other than the top, so just store the top
+        List<PatienceMatch> stacks = new();
+        foreach (PatienceMatch current in matches)
+        {
+            int index = FindTarget(stacks, current);
+            if (stacks.Count == index)
+            {
+                stacks.Add(current);
+            }
+            else
+            {
+                stacks[index] = current;
+            }
+
+            if (index != 0)
+            {
+                current.Prev = stacks[index];
+            }
+        }
+
+
+        int[] ret = new int[stacks.Count];
+
+        PatienceMatch last = stacks[^1];
+        int i = ret.Length - 1;
+        while (last != null)
+        {
+            ret[i] = last.LocB;
+            last = last.Prev;
+            i--;
+        }
+
+        return ret;
+    }
+
+    /// <summary>
+    /// Find the leftmost stack whose LocB is higher than current.LocB
+    /// </summary>
+    /// <param name="stacks"></param>
+    /// <param name="current"></param>
+    /// <returns>Returns the index of the stack to put current on.  Can be stacks.Count meaning a new stack needs to be created</returns>
+    internal static int FindTarget(List<PatienceMatch> stacks, PatienceMatch current)
+    {
+        // simple binary search
+        int high = stacks.Count;
+        int low = 0;
+        while (high > low)
+        {
+            int mid = (low + high) / 2;
+            if (stacks[mid].LocB < current.LocB)
+                low = mid + 1;
+            else
+                high = mid;
+        }
+
+        return low;
     }
 
     //private static readonly int _sizeOfSingleOccurence = Unsafe.SizeOf<SingleOccurence>();

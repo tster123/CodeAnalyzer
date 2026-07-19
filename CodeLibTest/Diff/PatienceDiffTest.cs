@@ -95,4 +95,27 @@ public class PatienceDiffTest
         Console.WriteLine($"a={a}, b={b}");
     */
     }
+
+    private void FT(int[] a, int val, int expectedIndex)
+    {
+        List<PatienceMatch> matches = a.Select(lb => new PatienceMatch(0, lb)).ToList();
+        int actual = PatienceDiff.FindTarget(matches, new PatienceMatch(0, val));
+        Assert.AreEqual(expectedIndex, actual, $"FindTarget([{string.Join(", ", a)}], {val})");
+    }
+
+    [TestMethod]
+    public void FindTargetTest()
+    {
+        FT([1, 3, 5, 7], 6, 3);
+        FT([1, 3, 5, 7], 8, 4);
+        FT([1, 3, 5, 7], 0, 0);
+
+        FT([], 5, 0);
+        FT([7], 5, 0);
+        FT([7], 9, 1);
+
+        FT([7, 9], 5, 0);
+        FT([7, 9], 8, 1);
+        FT([7, 9], 10, 2);
+    }
 }
