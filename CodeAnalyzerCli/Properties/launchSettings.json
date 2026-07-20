@@ -2,7 +2,7 @@
   "profiles": {
     "CodeAnalyzerCli": {
       "commandName": "Project",
-      "commandLineArgs": "diff C:\\temp\\left.cs C:\\temp\\right.cs"
+      "commandLineArgs": "diff ../../../../TestData/a.cs ../../../../TestData/b.cs"
     }
   }
 }

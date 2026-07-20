@@ -73,11 +73,10 @@ internal class DiffPrinter
 
     private void PrintSection()
     {
-        output.WriteLine();
         StringBuilder sb = new();
         int leftBefore = leftPos, rightBefore = rightPos;
         BuildSectionText(sb);
-        output.WriteLine($"@@ -{leftBefore},{leftPos} + {rightBefore},{rightPos} @@");
+        output.WriteLine($"@@ -{leftBefore + 1},{leftPos - leftBefore} +{rightBefore + 1},{rightPos - rightBefore} @@");
         output.Write(sb.ToString());
     }
 

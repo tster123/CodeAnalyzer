@@ -84,11 +84,14 @@ public class QuadraticMeyersDiff : IDiffAlgorithm
         }
 
         //Debug.Assert(maxSize - keeps == ret.Count);
+        ret.Reverse();
         return ret;
     }
 
     private void Print(uint[,] matrix, int width, int height)
     {
+        string? env = Environment.GetEnvironmentVariable("OUTPUT_VERBOSITY");
+        if (env == null || int.Parse(env) <= 2) return;
         Console.WriteLine("[");
         for (int y = 0; y < height; y++)
         {
