@@ -33,7 +33,7 @@ public class DiffCommand : Command<DiffOptions>
         
         Console.Out.WriteLine("---" + settings.LeftFile);
         Console.Out.WriteLine("+++" + settings.RightFile);
-        new DiffPrinter(Console.Out, parts, leftLines, rightLines).Print();
+        new DiffPrinter(settings, Console.Out, parts, leftLines, rightLines).Print();
         return 0;
     }
 }
@@ -45,11 +45,12 @@ internal class DiffPrinter
     private List<string> rightLines;
     private TextWriter output;
         
-    public int ContextLines { get; set; } = 3;
+    private readonly DiffOptions options;
 
     private int leftPos, rightPos, partsPos;
-    public DiffPrinter(TextWriter output, List<DiffPart> parts, List<string> leftLines, List<string> rightLines)
+    public DiffPrinter(DiffOptions options, TextWriter output, List<DiffPart> parts, List<string> leftLines, List<string> rightLines)
     {
+        this.options = options;
         this.output = output;
         this.parts = parts;
         this.leftLines = leftLines;
@@ -111,10 +112,10 @@ internal class DiffPrinter
             }
             partsPos++;
 
-            if (numNoChangesSeen == ContextLines)
+            if (numNoChangesSeen == options.ContextLines)
             {
                 bool keepGoing = false;
-                for (int lookAhead = partsPos + 1; lookAhead < Math.Min(parts.Count, partsPos + ContextLines + 1); lookAhead++)
+                for (int lookAhead = partsPos + 1; lookAhead < Math.Min(parts.Count, partsPos + options.ContextLines + 1); lookAhead++)
                 {
                     if (parts[lookAhead].Operation != Operation.Keep)
                     {
@@ -141,9 +142,9 @@ internal class DiffPrinter
             }
             else
             {
-                partsPos = Math.Max(0, partsPos - ContextLines);
-                leftPos = Math.Max(0, leftPos - ContextLines);
-                rightPos = Math.Max(0, rightPos - ContextLines);
+                partsPos = Math.Max(0, partsPos - options.ContextLines);
+                leftPos = Math.Max(0, leftPos - options.ContextLines);
+                rightPos = Math.Max(0, rightPos - options.ContextLines);
                 return true;
             }
         }
@@ -161,4 +162,9 @@ public class DiffOptions : CommandSettings
     [CommandArgument(1, "<filename>")] 
     [Description("Right (usually new) file")]
     public required string RightFile { get; set; }
+
+    [CommandOption("-l|--context-lines")]
+    [Description("Number of lines to include before and after a change to show context")]
+    [DefaultValue(3)]
+    public int ContextLines { get; set; } = 3;
 }

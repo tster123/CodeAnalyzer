@@ -137,7 +137,7 @@ public class PatienceDiff
 
         int[] ret = new int[stacks.Count];
 
-        PatienceMatch last = stacks[^1];
+        PatienceMatch? last = stacks[^1];
         int i = ret.Length - 1;
         while (last != null)
         {
@@ -233,7 +233,7 @@ public class PatienceDiff
 
 internal record PatienceMatch(int LocA, int LocB)
 {
-    //internal PatienceMatch Prev, Next;
+    internal PatienceMatch? Prev, Next;
 }
 
 internal record SingleOccurenceClass(int LocationA, ulong Value, bool MultipleSeen)

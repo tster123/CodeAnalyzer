@@ -14,6 +14,7 @@ public class Program
         {
             config.AddCommand<DiffCommand>("diff");
             config.AddCommand<MetricsCommand>("metrics");
+            config.UseStrictParsing();
         });
         return app.Run(args);
     }
