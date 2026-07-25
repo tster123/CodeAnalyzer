@@ -7,6 +7,8 @@
 /// </summary>
 public class PatienceDiff : IDiffAlgorithm
 {
+    public string Name => "patience";
+    
     public PatienceDiff()
     {
     }

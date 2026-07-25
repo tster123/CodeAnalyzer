@@ -4,8 +4,9 @@
 /// <summary>
 /// Simple implementation of myers algorithm that runs in O(m*n) and uses m*n space.
 /// </summary>
-public class QuadraticMeyersDiff : IDiffAlgorithm
+public class QuadraticMyersDiff : IDiffAlgorithm
 {
+    public string Name => "myers";
     public List<DiffPart> Diff(Span<ulong> a, Span<ulong> b)
     {
         uint[,] matrix = new uint[a.Length + 1, b.Length + 1];

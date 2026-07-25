@@ -28,7 +28,7 @@ public class DiffCommand : Command<DiffOptions>
         tokenizer.Accumulator = rightLines;
         List<ulong> rightTokens = tokenizer.Tokenize(ts, settings.RightFile, rightReader);
 
-        IDiffAlgorithm diff = new QuadraticMeyersDiff();
+        IDiffAlgorithm diff = new QuadraticMyersDiff();
         List<DiffPart> parts = diff.Diff(CollectionsMarshal.AsSpan(leftTokens), CollectionsMarshal.AsSpan(rightTokens));
         
         Console.Out.WriteLine("---" + settings.LeftFile);

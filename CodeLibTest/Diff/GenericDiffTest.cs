@@ -5,7 +5,7 @@ using CodeLib.Diff;
 [TestClass]
 public class QuadraticMeyersDiffTest
 {
-    private GenericDiffTester tester = new(new QuadraticMeyersDiff());
+    private GenericDiffTester tester = new(new QuadraticMyersDiff());
 
     [TestMethod]
     public void OnlyInsert()

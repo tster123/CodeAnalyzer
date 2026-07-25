@@ -30,4 +30,5 @@ public struct DiffPart
 public interface IDiffAlgorithm
 {
     public List<DiffPart> Diff(Span<ulong> a, Span<ulong> b);
+    public string Name { get; }
 }
