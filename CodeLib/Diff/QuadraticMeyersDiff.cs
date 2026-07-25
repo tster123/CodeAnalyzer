@@ -35,13 +35,11 @@ public class QuadraticMeyersDiff : IDiffAlgorithm
             }
         }
         
-        // now walk back from the bottom right to the top left always following rule of diagnal if free or else
+        // now walk back from the bottom right to the top left always following rule of diagonal if free or else
         // whichever one costs 1.
         int curX = a.Length;
         int curY = b.Length;
         int maxSize = a.Length + b.Length;
-        int maxCost = (int)matrix[a.Length, b.Length];
-        //int keeps = (maxSize - maxCost) / 2;
         Print(matrix, a.Length, b.Length);
         List<DiffPart> ret = new(maxSize);
         while (curX != 0 || curY != 0)

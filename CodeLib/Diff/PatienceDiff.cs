@@ -1,56 +1,22 @@
 ﻿namespace CodeLib.Diff;
 
 /// <summary>
-/// A patch is a chunk of code that has been either added
-/// </summary>
-public record struct Patch
-{
-    public uint APos;
-    public uint BPos;
-    public uint Len;
-    public PatchType Type;
-
-    private Patch(uint aPosition, uint bPosition, uint length, PatchType type)
-    {
-        APos = aPosition;
-        BPos = bPosition;
-        Len = length;
-        Type = type;
-    }
-
-    public static Patch Insert(uint aPos, uint bPos, uint len) => new(aPos, bPos, len, PatchType.Insert);
-    public static Patch Remove(uint aPos, uint len) => new(aPos, 0, len, PatchType.Remove);
-    public static Patch NoChange(uint aPos, uint len) => new(aPos, 0, len, PatchType.NoChange);
-}
-
-public enum PatchType : sbyte
-{
-    Remove,
-    Insert,
-    NoChange
-}
-
-/// <summary>
 /// reference:
 ///     https://blog.jcoglan.com/2017/09/19/the-patience-diff-algorithm/
 ///     https://blog.jcoglan.com/2017/09/28/implementing-patience-diff/
 /// </summary>
-public class PatienceDiff
+public class PatienceDiff : IDiffAlgorithm
 {
-    private List<ulong> a, b;
-
-    public PatienceDiff(List<ulong> a, List<ulong> b)
+    public PatienceDiff()
     {
-        this.a = a;
-        this.b = b;
     }
 
-    public List<Patch> Diff()
+    public List<DiffPart> Diff(Span<ulong> a, Span<ulong> b)
     {
-        return DiffInternal(new PatienceSection(0, a.Count, 0, b.Count));
+        return DiffInternal(new PatienceSection(0, a.Length, 0, b.Length));
     }
 
-    private List<Patch> DiffInternal(PatienceSection section)
+    private List<DiffPart> DiffInternal(PatienceSection section)
     {
         throw new NotImplementedException();
     }
@@ -227,6 +193,7 @@ public class PatienceDiff
         return ret;
     }
     */
+    
 }
 
 //internal record struct SingleOccurence(int Location, ulong Value, bool MultipleSeen);
