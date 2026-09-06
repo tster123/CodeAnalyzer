@@ -3,11 +3,29 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
 using CodeLib.Diff;
+using JetBrains.Annotations;
 using Spectre.Console.Cli;
 using Wrapped.System.IO;
 
 namespace CodeAnalyzerCli.Commands;
+[UsedImplicitly]
+public class DiffOptions : CommandSettings
+{
+    [CommandArgument(0, "<filename>")] 
+    [Description("Left (usually old) file")]
+    public required string LeftFile { get; set; }
+    
+    [CommandArgument(1, "<filename>")] 
+    [Description("Right (usually new) file")]
+    public required string RightFile { get; set; }
 
+    [CommandOption("-l|--context-lines")]
+    [Description("Number of lines to include before and after a change to show context")]
+    [DefaultValue(3)]
+    public int ContextLines { get; set; } = 3;
+}
+
+[UsedImplicitly]
 public class DiffCommand : Command<DiffOptions>
 {
     protected override int Execute(CommandContext context, DiffOptions settings, CancellationToken cancellationToken)
@@ -38,24 +56,14 @@ public class DiffCommand : Command<DiffOptions>
     }
 }
 
-internal class DiffPrinter
+internal class DiffPrinter(
+    DiffOptions options,
+    TextWriter output,
+    List<DiffPart> parts,
+    List<string> leftLines,
+    List<string> rightLines)
 {
-    private List<DiffPart> parts;
-    private List<string> leftLines;
-    private List<string> rightLines;
-    private TextWriter output;
-        
-    private readonly DiffOptions options;
-
     private int leftPos, rightPos, partsPos;
-    public DiffPrinter(DiffOptions options, TextWriter output, List<DiffPart> parts, List<string> leftLines, List<string> rightLines)
-    {
-        this.options = options;
-        this.output = output;
-        this.parts = parts;
-        this.leftLines = leftLines;
-        this.rightLines = rightLines;
-    }
 
     public void Print()
     {
@@ -151,20 +159,4 @@ internal class DiffPrinter
 
         return false;
     }
-}
-
-public class DiffOptions : CommandSettings
-{
-    [CommandArgument(0, "<filename>")] 
-    [Description("Left (usually old) file")]
-    public required string LeftFile { get; set; }
-    
-    [CommandArgument(1, "<filename>")] 
-    [Description("Right (usually new) file")]
-    public required string RightFile { get; set; }
-
-    [CommandOption("-l|--context-lines")]
-    [Description("Number of lines to include before and after a change to show context")]
-    [DefaultValue(3)]
-    public int ContextLines { get; set; } = 3;
 }
